@@ -1,19 +1,4 @@
-/*
- * SEQUITUR RANGING
- * JAVA example
- * 
- * (c) UNISET s.r.l. 2016
- * v1.0 Oct. 2016
- * 
- * Simple JAVA example which connects to SEQUITUR RANGING, performs ping, scan 
- * and 5 consecutive ranging requests between 2 nodes.
- * 
- * You have to set the IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board and
- * the unique ID of the SEQUITUR Pi board you want to range with
- * 
- */
-
-
+package dark2;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -22,62 +7,34 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Random;
-import com.pi4j.io.i2c.I2CBus;
-import com.pi4j.io.i2c.I2CDevice;
-import com.pi4j.io.i2c.I2CFactory;
-import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;        
-        
+import com.pi4j.component.lcd.LCDTextAlignment;
+import com.pi4j.component.lcd.impl.GpioLcdDisplay;
+import com.pi4j.io.gpio.GpioController;
+import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.system.NetworkInfo;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class HUB {
-    public static final int CLIENT_PING = 0;
-    public static final int CLIENT_SCAN = 56;
-    public static final int CLIENT_GET_RANGE = 50;
-    public final static int PACKETSIZE = 1000;
+
+        public final static int LCD_ROW_1 = 0;
+        public final static int LCD_ROW_2 = 1;
+	public static final int CLIENT_PING = 0;
+	public static final int CLIENT_SCAN = 56;
+	public static final int CLIENT_GET_RANGE = 50;
+	public final static int PACKETSIZE = 1000;
  
-    static String ipAddr = "192.168.1.10";			// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
-    static int port = 5678;							// Port used for the UDP connection with SEQUITUR RANGING
-    static String uniqueID = "TYKBCFDO";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
+	static String ipAddr = "192.168.0.16";			// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
+	static int port = 5678;							// Port used for the UDP connection with SEQUITUR RANGING
+	static String uniqueID = "10205EA910000EC9";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
 
-    static InetAddress IPAddress;
-    static DatagramSocket socket;
-    static DatagramPacket packet;
-        
-    public static final int MCP23008_ADDRESS = 0x20;
+	static InetAddress IPAddress;
+	static DatagramSocket socket;
+	static DatagramPacket packet;
 
-    private static final int IODIRA_REGISTER = 0x00; //IODIRA Register. Responsible for input or output
-    private static final int IODIRB_REGISTER = 0x01; //IODIRB Register. Responsible for input or output
-    
-    private static final int GPIOA_REGISTER = 0x12; //GPIOA Register. Write or read value
-    private static final int GPIOB_REGISTER = 0x13; //GPIOB Register. Write or read value
-    
-    //private static final int GPPUA_REGISTER = 0x0C; //PORT A Pull-up value. If set configures the internal pull-ups
-    private static final int GPPUB_REGISTER = 0x0D; ///PORT B Pull-up value. If set configures the internal pull-ups
-    
-    public static void main(String args[]) throws InterruptedException, UnsupportedBusNumberException, IOException {
-        System.out.println("MCP23017 Example");
-        I2CBus i2c = I2CFactory.getInstance(I2CBus.BUS_1);
-        I2CDevice device = i2c.getDevice(MCP23008_ADDRESS);
-        
-    device.write(0, "WeAreGenius");
-    device.write(1, "Of course")
-        /*device.write(IODIRA_REGISTER, (byte) 0x00);
-        
-        device.write(IODIRB_REGISTER, (byte) 0xFF);
-        device.write(GPPUB_REGISTER, (byte) 0xFF);
-        
-        
-//While true loop
-            System.out.println(device.read(GPIOB_REGISTER));
-        	Thread.sleep(2000);
-            device.write(GPIOA_REGISTER, (byte) 0x00);
-        	Thread.sleep(2000);
-            device.write(GPIOA_REGISTER, (byte) 0xFF);
-        */
-        
-    
-	
-
-
-		System.out.println("************************");
+	public static void main(String[] args) throws InterruptedException, IOException {
+		/*System.out.println("************************");
 		System.out.println("*   SEQUITUR RANGING   *");
 		System.out.println("*     JAVA example     *");
 		System.out.println("*                      *");  
@@ -139,8 +96,38 @@ public class HUB {
 		System.out.println("");
 		System.out.println("Mean distance: "+sum/counter+" m");
 		// Close the socket
-		socket.close();
-	}
+		socket.close();*/
+	System.out.println("16X2 LCD Example with Raspberry Pi using Pi4J and JAVA");
+
+        // create gpio controller
+        final GpioController gpio = GpioFactory.getInstance();
+
+        // initialize LCD
+        final GpioLcdDisplay lcd = new GpioLcdDisplay(2,    // number of row supported by LCD
+                                                16,       // number of columns supported by LCD
+                                                RaspiPin.GPIO_09,  // LCD RS pin
+                                                RaspiPin.GPIO_08,  // LCD strobe pin
+                                                RaspiPin.GPIO_25,  // LCD data bit D4
+                                                RaspiPin.GPIO_15,  // LCD data bit D5
+                                                RaspiPin.GPIO_16,  // LCD data bit D6
+                                                RaspiPin.GPIO_24); // LCD data bit D7
+        lcd.clear();
+          Thread.sleep(1000);
+          
+          
+           
+        lcd.write(LCD_ROW_1, "WeArGenius");
+        lcd.write(LCD_ROW_2, " ???");
+
+        Thread.sleep(2000);
+        for (String ipAddress : NetworkInfo.getIPAddresses()){
+            System.out.println("IP Addresses      :  " + ipAddress);
+            lcd.writeln(LCD_ROW_2,ipAddress,LCDTextAlignment.ALIGN_CENTER);
+        }
+        
+        gpio.shutdown();
+    
+        }
 
 	// Method that implements the UDP connection. It sends the desired command
 	// and return the response read from the socket
@@ -178,7 +165,6 @@ public class HUB {
 		} catch (IOException e) {
 			return "Communication Error";
 		}
-	
+	}
 
-        }
 }
