@@ -1,4 +1,5 @@
-package dark2;
+
+package node;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -16,28 +17,28 @@ import com.pi4j.system.NetworkInfo;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HUB {
+public class Node {
 
-        public final static int LCD_ROW_1 = 0;
+   public final static int LCD_ROW_1 = 0;
         public final static int LCD_ROW_2 = 1;
 	public static final int CLIENT_PING = 0;
 	public static final int CLIENT_SCAN = 56;
 	public static final int CLIENT_GET_RANGE = 50;
 	public final static int PACKETSIZE = 1000;
-        public static int safe = 0; //acknowledge varible 0 until safe
-	static String ipAddr = "192.168.1.10";			// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
+        public static int safe = 2; //acknowledge varible 2 until activated by HUB
+	public static int acknowledge = 0;
+        static String ipAddr = "192.168.0.13";			// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
 	static int port = 5678;							// Port used for the UDP connection with SEQUITUR RANGING
 	static String uniqueID = "10205EA910000EC9";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
 
 	static InetAddress IPAddress;
         static InetAddress IP;
-        public final static double set_distance = 1.524; // Danger zone in meters
 	static DatagramSocket socket;
 	static DatagramPacket packet;
 
-	public static void main(String[] args) throws InterruptedException, IOException {
-	
-            // create gpio controller
+    public static void main(String[] args) throws InterruptedException, IOException {
+       
+      // create gpio controller
         final GpioController gpio = GpioFactory.getInstance();
 
         // initialize LCD
@@ -51,7 +52,7 @@ public class HUB {
                                                 RaspiPin.GPIO_24); // LCD data bit D7
         lcd.clear();
 while (true){		
-		try {
+		/*try {
 			// Create the socket
 			socket = new DatagramSocket();
 			IPAddress = InetAddress.getByName(ipAddr);
@@ -101,28 +102,40 @@ while (true){
 		// Print the mean distance
 		double location = sum/counter;
 		// Close the socket
-		socket.close();
-                
-                
-                if (location < set_distance){  // Check within distance
-                while (safe != 1){    
-                lcd.write(LCD_ROW_1, "Alerting Device:"); 
-                lcd.write(LCD_ROW_2, "ID: Node56");
-                DatagramSocket ds = new DatagramSocket();
-                byte[] safecheck = (safe+"").getBytes(); //changes varible into bytes
-                IP = InetAddress.getByName(ipAddr);
-                DatagramPacket dp = new DatagramPacket(safecheck,safecheck.length,IP,5656);
-                ds.send(dp);
-                
-                byte[] saferesponse = new byte[1];
-                DatagramPacket dp1 = new DatagramPacket(saferesponse,saferesponse.length);
-                ds.receive(dp1);
-                String str = new String(dp1.getData());
+		socket.close();*/
+                lcd.write(LCD_ROW_1, "ID: Node56"); 
+                lcd.write(LCD_ROW_2, "All Clear");
+                DatagramSocket ds = new DatagramSocket(5656);
+                byte[] safecheck = new byte[1];
+                DatagramPacket dp = new DatagramPacket(safecheck,safecheck.length);
+                ds.receive(dp);
+                String str = new String(dp.getData());
                 safe = Integer.parseInt(str);
+                
+                if (safe==0){
+                while (acknowledge == 0){
+                lcd.write(LCD_ROW_1, "Alert!!"); 
+                lcd.write(LCD_ROW_2, "Central Hub");
+                //vibrate until button pushed
+                    
                 }
-               //turn on mosfet
+                lcd.write(LCD_ROW_1, "Safe Status Sent"); 
+                lcd.write(LCD_ROW_2, "Please Resume");
+                safe = 1;
+                IP = InetAddress.getByName(ipAddr);
+                byte[] saferesponse = (safe+"").getBytes(); //changes varible into bytes
+                IP = InetAddress.getByName(ipAddr);
+                DatagramPacket dp1 = new DatagramPacket(saferesponse,saferesponse.length,IP,dp.getPort());
+                ds.send(dp1);
+                
                 }
 
+        
+         
+          
+          
+           
+        
         
         gpio.shutdown();
     
