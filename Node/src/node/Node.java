@@ -107,32 +107,39 @@ while (true){
 		double location = sum/counter;
 		// Close the socket
 		socket.close();*/
+                lcd.clear();
                 lcd.write(LCD_ROW_1, "ID: Node56"); 
                 lcd.write(LCD_ROW_2, "All Clear");
-                DatagramSocket ds = new DatagramSocket(5656);
-                byte[] safecheck = new byte[1];
-                DatagramPacket dp = new DatagramPacket(safecheck,safecheck.length);
-                ds.receive(dp);
-                String str = new String(dp.getData());
-                safe = Integer.parseInt(str);
-                
-                if (safe==0){
-                while (acknowledge.isLow()){
+                Thread.sleep(5000);
+//                DatagramSocket ds = new DatagramSocket(5656);
+//                byte[] safecheck = new byte[1];
+//                DatagramPacket dp = new DatagramPacket(safecheck,safecheck.length);
+//                ds.receive(dp);
+//                System.out.println("During get data");
+//                String str = new String(dp.getData());
+//                System.out.println("after?");
+//                safe = Integer.parseInt(str);
+//                System.out.println(acknowledge.isLow());
+//                if (safe==0){
+              lcd.clear();
+            while (acknowledge.isLow()){
+                    
+
                 lcd.write(LCD_ROW_1, "Alert!!"); 
                 lcd.write(LCD_ROW_2, "Central Hub");
                 //vibrate until button pushed
-                    
-                }
+            }
+              lcd.clear();
+   
                 lcd.write(LCD_ROW_1, "Safe Status Sent"); 
-                lcd.write(LCD_ROW_2, "Please Resume");
-                safe = 1;
-                IP = InetAddress.getByName(ipAddr);
-                byte[] saferesponse = (safe+"").getBytes(); //changes varible into bytes
-                IP = InetAddress.getByName(ipAddr);
-                DatagramPacket dp1 = new DatagramPacket(saferesponse,saferesponse.length,IP,dp.getPort());
-                ds.send(dp1);
+                lcd.write(LCD_ROW_2, "Please Resume");safe = 1;
+//                IP = InetAddress.getByName(ipAddr);
+//                byte[] saferesponse = (safe+"").getBytes(); //changes varible into bytes
+//                IP = InetAddress.getByName(ipAddr);
+//                DatagramPacket dp1 = new DatagramPacket(saferesponse,saferesponse.length,IP,dp.getPort());
+//                //ds.send(dp1);
                 Thread.sleep(5000);
-                }
+//                }
 
         
         gpio.shutdown();
