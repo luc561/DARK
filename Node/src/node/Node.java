@@ -3,6 +3,11 @@ package node;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -27,15 +32,20 @@ public class Node {
 	public static final int CLIENT_GET_RANGE = 50;
 	public final static int PACKETSIZE = 1000;
         public static int safe = 2; //acknowledge varible 2 until activated by HUB
-        static String ipAddr = "192.168.0.13";			// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
-	static int port = 5678;							// Port used for the UDP connection with SEQUITUR RANGING
-	static String uniqueID = "10205FE010000379";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
+        static String ipAddr = "192.168.0.13";
+        static String ipAddr2 = "192.168.0.10";// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
+	static int port = 5678;	// Port used for the UDP connection with SEQUITUR RANGING
+	static int hubport = 61342;	
+        static String uniqueID = "10205FE010000379";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
         
         
         
 	static InetAddress IPAddress;
         static InetAddress IP;
 	static DatagramSocket socket;
+        static DatagramSocket ds;
+         static DatagramPacket dp;
+         static DatagramPacket dp1;
 	static DatagramPacket packet;
 
     public static void main(String[] args) throws InterruptedException, IOException {
@@ -54,9 +64,11 @@ public class Node {
                                                 RaspiPin.GPIO_16,  // LCD data bit D6
                                                 RaspiPin.GPIO_24); // LCD data bit D7
         lcd.clear();
-        
+           
+                
 while (true){		
-		/*try {
+                		
+    /*try {
 			// Create the socket
 			socket = new DatagramSocket();
 			IPAddress = InetAddress.getByName(ipAddr);
@@ -106,45 +118,75 @@ while (true){
 		// Print the mean distance
 		double location = sum/counter;
 		// Close the socket
-		socket.close();*/
-                lcd.clear();
-                lcd.write(LCD_ROW_1, "ID: Node56"); 
-                lcd.write(LCD_ROW_2, "All Clear");
-                Thread.sleep(5000);
-//                DatagramSocket ds = new DatagramSocket(5656);
-//                byte[] safecheck = new byte[1];
-//                DatagramPacket dp = new DatagramPacket(safecheck,safecheck.length);
-//                ds.receive(dp);
-//                System.out.println("During get data");
-//                String str = new String(dp.getData());
-//                System.out.println("after?");
-//                safe = Integer.parseInt(str);
-//                System.out.println(acknowledge.isLow());
-//                if (safe==0){
-              lcd.clear();
-            while (acknowledge.isLow()){
+		socket.close();
+                */
+                
+                lcd.write(LCD_ROW_1, "ID: Node56",LCDTextAlignment.ALIGN_CENTER); 
+                lcd.write(LCD_ROW_2, "All Clear",LCDTextAlignment.ALIGN_CENTER);
+                IPAddress = InetAddress.getByName(ipAddr);
+                IP = InetAddress.getByName(ipAddr2);
+                ServerSocket welcomeSocket = new ServerSocket(56560);  
+                Socket connectionSocket = welcomeSocket.accept();
+                System.out.println("Sandwich One?");
+                ServerSocket welcomeSocket2 = new ServerSocket(56561);  
+                Socket connectionSocket2 = welcomeSocket2.accept();
+                System.out.println("Sandwich Two?");
+                try{
+                BufferedReader inFromClient =
+                new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+                DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
+                 
+                 safe = Integer.parseInt(inFromClient.readLine());
+                 
+                }
+                catch (NullPointerException np){
                     
+                }
+                catch( Exception e )
+                {
+                   e.printStackTrace();
+                }
+                finally {
+                    connectionSocket.close();
+                }
+                
+                
+                            
 
-                lcd.write(LCD_ROW_1, "Alert!!"); 
-                lcd.write(LCD_ROW_2, "Central Hub");
+                
+//                
+//                
+                
+                if (safe==0){
+                lcd.clear();
+                
+                while (acknowledge.isLow()){
+                
+
+                lcd.write(LCD_ROW_1, "Alert!!",LCDTextAlignment.ALIGN_CENTER); 
+                lcd.write(LCD_ROW_2, "Central Hub",LCDTextAlignment.ALIGN_CENTER);
                 //vibrate until button pushed
-            }
-              lcd.clear();
-   
-                lcd.write(LCD_ROW_1, "Safe Status Sent"); 
-                lcd.write(LCD_ROW_2, "Please Resume");safe = 1;
-//                IP = InetAddress.getByName(ipAddr);
-//                byte[] saferesponse = (safe+"").getBytes(); //changes varible into bytes
-//                IP = InetAddress.getByName(ipAddr);
-//                DatagramPacket dp1 = new DatagramPacket(saferesponse,saferesponse.length,IP,dp.getPort());
-//                //ds.send(dp1);
-                Thread.sleep(5000);
-//                }
+                }
+                safe = 1;
+                
+              
+                
+                DataOutputStream outToClient2 = new DataOutputStream(connectionSocket2.getOutputStream());
+                outToClient2.writeBytes(Integer.toString(safe));
+                connectionSocket2.close();
+                
+                
+                lcd.write(LCD_ROW_1, "Safe Status Sent",LCDTextAlignment.ALIGN_CENTER); 
+                lcd.write(LCD_ROW_2, "Please Resume",LCDTextAlignment.ALIGN_CENTER);
+//                
+                Thread.sleep(2000);
+                lcd.clear();}
+                }
 
         
-        gpio.shutdown();
+        
     
-        }}
+        }
 
 	// Method that implements the UDP connection. It sends the desired command
 	// and return the response read from the socket
