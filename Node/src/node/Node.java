@@ -22,6 +22,74 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import static node.Node.safe;
+
+
+   class Connect extends Thread{
+                public void Status(int saferesponse) throws IOException{
+                boolean go = true;
+                ServerSocket welcomeSocket = new ServerSocket(56560);  
+               while(go){
+                Socket connectionSocket = welcomeSocket.accept();
+                    try{
+                
+                
+                System.out.println("Sandwich One?");
+                
+                
+                BufferedReader inFromClient =
+                new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+                DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
+                safe = Integer.parseInt(inFromClient.readLine());
+                
+                go= false;
+                }            
+                    catch (NullPointerException np){
+                    
+                }
+              catch( Exception e )
+                {
+                   e.printStackTrace();
+                }
+                finally{
+                      connectionSocket.close();
+                      welcomeSocket.close();
+                      
+                    }}
+             
+             }
+                public void Reply(int saferesponse) throws IOException{
+                boolean go = true;
+                ServerSocket welcomeSocket = new ServerSocket(56560);  
+               while(go){
+                Socket connectionSocket = welcomeSocket.accept();
+                    try{
+                
+                
+                System.out.println("Sandwich One?");
+                
+                
+                
+                DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
+                
+                outToClient.writeBytes(Integer.toString(saferesponse));
+                go= false;
+                }            
+                    catch (NullPointerException np){
+                    
+                }
+              catch( Exception e )
+                {
+                   e.printStackTrace();
+                }
+                finally{
+                      connectionSocket.close();
+                      welcomeSocket.close();
+                      
+                    }}
+             
+             }
+   }
 
 public class Node {
 
@@ -32,6 +100,7 @@ public class Node {
 	public static final int CLIENT_GET_RANGE = 50;
 	public final static int PACKETSIZE = 1000;
         public static int safe = 2; //acknowledge varible 2 until activated by HUB
+        public static int saferesponse = 2;
         static String ipAddr = "192.168.0.13";
         static String ipAddr2 = "192.168.0.10";// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
 	static int port = 5678;	// Port used for the UDP connection with SEQUITUR RANGING
@@ -47,7 +116,7 @@ public class Node {
          static DatagramPacket dp;
          static DatagramPacket dp1;
 	static DatagramPacket packet;
-
+ 
     public static void main(String[] args) throws InterruptedException, IOException {
        
       // create gpio controller
@@ -65,7 +134,8 @@ public class Node {
                                                 RaspiPin.GPIO_24); // LCD data bit D7
         lcd.clear();
            
-                
+           IPAddress = InetAddress.getByName(ipAddr);
+                IP = InetAddress.getByName(ipAddr2);     
 while (true){		
                 		
     /*try {
@@ -123,32 +193,15 @@ while (true){
                 
                 lcd.write(LCD_ROW_1, "ID: Node56",LCDTextAlignment.ALIGN_CENTER); 
                 lcd.write(LCD_ROW_2, "All Clear",LCDTextAlignment.ALIGN_CENTER);
-                IPAddress = InetAddress.getByName(ipAddr);
-                IP = InetAddress.getByName(ipAddr2);
-                ServerSocket welcomeSocket = new ServerSocket(56560);  
-                Socket connectionSocket = welcomeSocket.accept();
-                System.out.println("Sandwich One?");
-                ServerSocket welcomeSocket2 = new ServerSocket(56561);  
-                Socket connectionSocket2 = welcomeSocket2.accept();
-                System.out.println("Sandwich Two?");
-                try{
-                BufferedReader inFromClient =
-                new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-                DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
+                
+                
+                Connect areU =  new Connect();
+                
+                areU.Status(saferesponse);
+                while(areU.isAlive()){
+                }
                  
-                 safe = Integer.parseInt(inFromClient.readLine());
-                 
-                }
-                catch (NullPointerException np){
-                    
-                }
-                catch( Exception e )
-                {
-                   e.printStackTrace();
-                }
-                finally {
-                    connectionSocket.close();
-                }
+                
                 
                 
                             
@@ -167,18 +220,20 @@ while (true){
                 lcd.write(LCD_ROW_2, "Central Hub",LCDTextAlignment.ALIGN_CENTER);
                 //vibrate until button pushed
                 }
-                safe = 1;
                 
-              
+                saferesponse = 1;
+                safe = saferesponse;
+               
                 
-                DataOutputStream outToClient2 = new DataOutputStream(connectionSocket2.getOutputStream());
-                outToClient2.writeBytes(Integer.toString(safe));
-                connectionSocket2.close();
+                Connect respond =  new Connect();
+                respond.Reply(saferesponse);
+                
                 
                 
                 lcd.write(LCD_ROW_1, "Safe Status Sent",LCDTextAlignment.ALIGN_CENTER); 
                 lcd.write(LCD_ROW_2, "Please Resume",LCDTextAlignment.ALIGN_CENTER);
-//                
+              while(respond.isAlive()){
+                } 
                 Thread.sleep(2000);
                 lcd.clear();}
                 }

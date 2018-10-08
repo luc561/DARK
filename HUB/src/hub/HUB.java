@@ -19,10 +19,69 @@ import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.system.NetworkInfo;
+
 import java.net.ConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+class Connect extends Thread{
+    public int Receive() throws UnknownHostException{
+                InetAddress IP;
+                String ipAddr2 = "192.168.1.13";
+                IP = InetAddress.getByName(ipAddr2);
+                boolean receive = true;
+                int safe = 0;
+ while(receive){
+                   
+                    try{
+                        Socket clientSocket = new Socket(IP, 56560);
+                        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        safe = Integer.parseInt(inFromServer.readLine());
+                        
+                        clientSocket.close();
+                        receive = false;
+                        
+                    }
+                   
+                catch( Exception e )
+                {
+                   e.printStackTrace();
+                }
+                
+                  
+                
+                }
+                return safe;
+                }
+
+    public boolean Send(int send) throws UnknownHostException{
+                InetAddress IP;
+                String ipAddr2 = "192.168.1.13";
+                IP = InetAddress.getByName(ipAddr2);
+                boolean end = true;
+                int safe = 0;
+            while (end){
+                    try{
+                        
+                        Socket clientSocket = new Socket(IP, 56560);
+                    
+                        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                        
+                        outToServer.writeBytes(Integer.toString(safe));    
+                        clientSocket.close();
+                        end = false;
+              
+                       
+                        }
+                   
+                catch( Exception e )
+                {
+                   e.printStackTrace();
+                }
+                    }
+    return end;}
+
+}
 public class HUB {
 
         public final static int LCD_ROW_1 = 0;
@@ -44,6 +103,9 @@ public class HUB {
         static DatagramSocket ds;
 	static DatagramPacket dp;
        static DatagramPacket dp1;
+       static boolean send = true;
+              
+       
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 	
@@ -107,40 +169,22 @@ while (true){
                 lcd.clear();
                 lcd.write(LCD_ROW_1, "Alerting Device:",LCDTextAlignment.ALIGN_CENTER); 
                 lcd.write(LCD_ROW_2, "ID: Node56",LCDTextAlignment.ALIGN_CENTER);
-                while(safe != 1){
                 
-                    try{
-                        IP = InetAddress.getByName(ipAddr2); 
-                        Socket clientSocket = new Socket(IP, 56560);
-                    
-                        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                        
-                        outToServer.writeBytes(Integer.toString(safe));    
-                        clientSocket.close();
-                        
-                       
-                        }
-                   
-                catch( Exception e )
-                {
-                   e.printStackTrace();
-                }
-                   System.out.println("Why Me");
-                try{
-                        Socket clientSocket2 = new Socket(IP, 56561);
-                        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket2.getInputStream()));
-                        safe = Integer.parseInt(inFromServer.readLine());
-                        System.out.println(safe);
-                        clientSocket2.close();
-                       
-                        }
-                   
-                catch( Exception e )
-                {
-                   e.printStackTrace();
-                }
-                }}      
                 
+              Connect client = new Connect();
+              client.Send(safe);
+              
+              while (client.isAlive()){
+                 
+              }
+              
+              safe = client.Receive();
+                
+                while (client.isAlive())
+                {}
+                
+               
+                }
                         
                 
                 else{
@@ -201,4 +245,3 @@ while (true){
 	}
 
 }
-
