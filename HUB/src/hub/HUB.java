@@ -5,8 +5,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -18,11 +16,6 @@ import com.pi4j.component.lcd.impl.GpioLcdDisplay;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.system.NetworkInfo;
-
-import java.net.ConnectException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class Connect extends Thread{
     public int Receive() throws UnknownHostException{
@@ -148,7 +141,7 @@ while (true){
 			System.out.println("Ranging request #"+(i+1));  // Loops five times and gets the distance each time
 			// Ranging request
 			response = UDPMessage(command);
-			//System.out.println("Response: " + response);
+			
 			// Extract the distance value from the received message
 			splitted = response.split("\\s+");
 			if(splitted[1].equals("255")){

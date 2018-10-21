@@ -9,19 +9,13 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Random;
 import com.pi4j.component.lcd.LCDTextAlignment;
 import com.pi4j.component.lcd.impl.GpioLcdDisplay;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.system.NetworkInfo;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import static node.Node.safe;
 
 
@@ -138,58 +132,7 @@ public class Node {
                 IP = InetAddress.getByName(ipAddr2);     
 while (true){		
                 		
-    /*try {
-			// Create the socket
-			socket = new DatagramSocket();
-			IPAddress = InetAddress.getByName(ipAddr);
-		} catch (UnknownHostException e) {
-			System.out.println("IP address not correct");
-		} catch (SocketException e) {
-			System.out.println("Socket Error");
-		}
-                
-		// Ping SEQUITUR RANGING
-		String response = UDPMessage(String.valueOf(CLIENT_PING));
-		
-		
-		// SCAN for other nodes running SEQUITUR RANGING
-		
-		String command=String.format("%d %d", CLIENT_SCAN, 1000);
-		response=UDPMessage(command);
-		String[] splitted = response.split("\\s+");
-		if(Integer.parseInt(splitted[1])>0){
-			for(int i =0;i<Integer.parseInt(splitted[1]);i++){
-				System.out.println("Found device #"+(i+1)+". Unique ID: "+splitted[2+i*2]);
-			}
-		}else{
-			System.out.println("No devices found");
-		}
-		System.out.println("");
-		
-		// Ranging with the selected destination for 5 times
-		command = String.format("%d %s", CLIENT_GET_RANGE, uniqueID);
-		
-		double sum=0;
-		int counter=0;
-		for(int i=0;i<5;i++){
-			
-			// Ranging request
-			response = UDPMessage(command);
-			
-			// Extract the distance value from the received message
-			splitted = response.split("\\s+");
-			if(splitted[1].equals("255")){
-				System.out.println("Ranging Error");
-			}else{
-				sum=sum+Double.parseDouble(splitted[2]);
-				counter=counter+1;
-			}
-		}
-		// Print the mean distance
-		double location = sum/counter;
-		// Close the socket
-		socket.close();
-                */
+    
                 
                 lcd.write(LCD_ROW_1, "ID: Node56",LCDTextAlignment.ALIGN_CENTER); 
                 lcd.write(LCD_ROW_2, "All Clear",LCDTextAlignment.ALIGN_CENTER);
@@ -201,14 +144,7 @@ while (true){
                 while(areU.isAlive()){
                 }
                  
-                
-                
-                
-                            
-
-                
-//                
-//                
+              
                 
                 if (safe==0){
                 lcd.clear();
