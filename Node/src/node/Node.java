@@ -16,6 +16,8 @@ import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinState;
 import static node.Node.safe;
 
 
@@ -96,7 +98,7 @@ public class Node {
         public static int safe = 2; //acknowledge varible 2 until activated by HUB
         public static int saferesponse = 2;
         static String ipAddr = "192.168.0.13";
-        static String ipAddr2 = "192.168.0.10";// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
+        static String ipAddr2 = "192.168.0.5";// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
 	static int port = 5678;	// Port used for the UDP connection with SEQUITUR RANGING
 	static int hubport = 61342;	
         static String uniqueID = "10205FE010000379";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
@@ -116,7 +118,7 @@ public class Node {
       // create gpio controller
         final GpioController gpio = GpioFactory.getInstance();
         GpioPinDigitalInput acknowledge = gpio.provisionDigitalInputPin(RaspiPin.GPIO_26);
-        
+        final GpioPinDigitalOutput vib = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "vibrating motor", PinState.LOW);
         // initialize LCD
         final GpioLcdDisplay lcd = new GpioLcdDisplay(2,    // number of row supported by LCD
                                                 16,       // number of columns supported by LCD
@@ -154,7 +156,7 @@ while (true){
 
                 lcd.write(LCD_ROW_1, "Alert!!",LCDTextAlignment.ALIGN_CENTER); 
                 lcd.write(LCD_ROW_2, "Central Hub",LCDTextAlignment.ALIGN_CENTER);
-                //vibrate until button pushed
+                vib.setState(PinState.HIGH);//vibrate until button pushed
                 }
                 
                 saferesponse = 1;
@@ -164,7 +166,7 @@ while (true){
                 Connect respond =  new Connect();
                 respond.Reply(saferesponse);
                 
-                
+                vib.setState(PinState.LOW);
                 
                 lcd.write(LCD_ROW_1, "Safe Status Sent",LCDTextAlignment.ALIGN_CENTER); 
                 lcd.write(LCD_ROW_2, "Please Resume",LCDTextAlignment.ALIGN_CENTER);

@@ -15,7 +15,10 @@ import com.pi4j.component.lcd.LCDTextAlignment;
 import com.pi4j.component.lcd.impl.GpioLcdDisplay;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinState;
 
 class Connect extends Thread{
     public int Receive() throws UnknownHostException{
@@ -84,7 +87,7 @@ public class HUB {
 	public static final int CLIENT_GET_RANGE = 50;
 	public final static int PACKETSIZE = 1000;
         public static int safe = 0; //acknowledge varible 0 until safe
-	static String ipAddr = "192.168.1.10";
+	static String ipAddr = "192.168.1.4";
         static String ipAddr2 = "192.168.1.13";// IP address of the Raspberry Pi computer equipped with SEQUITUR Pi board
 	static int port = 5678;							// Port used for the UDP connection with SEQUITUR RANGING
 	static String uniqueID = "10205FE010003286";	// Unique ID of the SEQUITUR Pi board you want to range with (check the scan result for the available addresses)
@@ -104,7 +107,9 @@ public class HUB {
 	
             // create gpio controller
         final GpioController gpio = GpioFactory.getInstance();
-
+        final GpioPinDigitalOutput pin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_27, "MOSFet", PinState.LOW);
+        final GpioPinDigitalOutput ssource = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_28, "Source", PinState.LOW);
+        GpioPinDigitalInput sinput = gpio.provisionDigitalInputPin(RaspiPin.GPIO_29);
         // initialize LCD
         final GpioLcdDisplay lcd = new GpioLcdDisplay(2,    // number of row supported by LCD
                                                 16,       // number of columns supported by LCD
@@ -118,7 +123,9 @@ public class HUB {
 while (true){	
                 lcd.write(LCD_ROW_1, "Online Devices:",LCDTextAlignment.ALIGN_CENTER); // Screen Output
                 lcd.write(LCD_ROW_2, "ID: Node56",LCDTextAlignment.ALIGN_CENTER);
+                ssource.setState(PinState.HIGH);
                 Thread.sleep(2000);
+                if(sinput.isHigh()){
 		try {
 			// Create the socket
 			socket = new DatagramSocket();  // Opens UDP connection with Ranging software on PI
@@ -186,12 +193,12 @@ while (true){
                 
                  if (safe==1){
                    
-               //turn on mosfet
+               pin.setState(PinState.HIGH);//turn on mosfet
                lcd.clear();
-               while (true)
-               {lcd.write(LCD_ROW_1, "Success",LCDTextAlignment.ALIGN_CENTER); 
-                lcd.write(LCD_ROW_2, "Great Job",LCDTextAlignment.ALIGN_CENTER);
-                 }}
+               while(sinput.isHigh()){
+               lcd.write(LCD_ROW_1, "Success",LCDTextAlignment.ALIGN_CENTER); 
+               lcd.write(LCD_ROW_2, "Great Job",LCDTextAlignment.ALIGN_CENTER);
+               }}}
                  
                 }
 
